@@ -518,12 +518,15 @@ int main() {
             system.queryRanking(team_name);
         }
         else if (command == "QUERY_SUBMISSION") {
-            string team_name, tmp, problem, status_str;
-            iss >> team_name >> tmp >> problem >> tmp >> status_str;
-            // Remove quotes if present
-            if (problem.back() == '=') {
-                // Already parsed correctly
-            }
+            string team_name, tmp, problem_eq, status_eq;
+            iss >> team_name >> tmp >> problem_eq >> tmp >> status_eq;
+            
+            // Parse PROBLEM=problem_name
+            string problem = problem_eq.substr(7); // Skip "PROBLEM="
+            
+            // Parse STATUS=status
+            string status_str = status_eq.substr(7); // Skip "STATUS="
+            
             system.querySubmission(team_name, problem, status_str);
         }
         else if (command == "END") {
