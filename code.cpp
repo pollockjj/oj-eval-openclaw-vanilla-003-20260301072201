@@ -36,6 +36,8 @@ struct Team {
     int solved_count = 0;
     int total_penalty = 0;
     bool frozen = false;  // Whether team has any frozen problems
+    mutable vector<int> cached_solve_times; // Cache for comparison
+    mutable bool cache_valid = false;
     
     void updateSolvedAndPenalty() {
         solved_count = 0;
@@ -46,17 +48,21 @@ struct Team {
                 total_penalty += 20 * p.second.wrong_before_accept + p.second.accept_time;
             }
         }
+        cache_valid = false; // Invalidate cache
     }
     
-    vector<int> getSortedSolveTimes() const {
-        vector<int> times;
-        for (const auto& p : problems) {
-            if (p.second.solved) {
-                times.push_back(p.second.accept_time);
+    const vector<int>& getSortedSolveTimes() const {
+        if (!cache_valid) {
+            cached_solve_times.clear();
+            for (const auto& p : problems) {
+                if (p.second.solved) {
+                    cached_solve_times.push_back(p.second.accept_time);
+                }
             }
+            sort(cached_solve_times.rbegin(), cached_solve_times.rend()); // Descending order
+            cache_valid = true;
         }
-        sort(times.rbegin(), times.rend()); // Descending order
-        return times;
+        return cached_solve_times;
     }
 };
 
@@ -69,6 +75,7 @@ private:
     bool frozen = false;
     bool first_flush = true;
     vector<string> team_ranking; // Current ranking
+    bool ranking_valid = false; // Whether ranking is up to date
     
     Status parseStatus(const string& s) {
         if (s == "Accepted") return Accepted;
@@ -88,6 +95,8 @@ private:
     }
     
     void updateRanking() {
+        if (ranking_valid) return; // Already up to date
+        
         vector<pair<string, Team*>> team_ptrs;
         for (auto& t : teams) {
             team_ptrs.push_back({t.first, &t.second});
@@ -102,6 +111,12 @@ private:
         for (auto& p : team_ptrs) {
             team_ranking.push_back(p.first);
         }
+        
+        ranking_valid = true;
+    }
+    
+    void invalidateRanking() {
+        ranking_valid = false;
     }
     
     bool compareTeams(const Team& a, const Team& b) {
@@ -232,6 +247,7 @@ public:
                 info.accept_time = time;
                 info.wrong_before_accept = info.wrong_attempts;
                 team.updateSolvedAndPenalty();
+                invalidateRanking();
             } else {
                 info.wrong_attempts++;
             }
@@ -250,6 +266,7 @@ public:
             }
         }
         
+        invalidateRanking();
         updateRanking();
         first_flush = false;
         cout << "[Info]Flush scoreboard.\n";
@@ -354,6 +371,7 @@ public:
             
             // Check if ranking changed
             int old_rank = lowest_rank;
+            invalidateRanking();
             updateRanking();
             int new_rank = -1;
             for (int i = 0; i < team_ranking.size(); i++) {
