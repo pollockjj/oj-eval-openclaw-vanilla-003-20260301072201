@@ -130,9 +130,9 @@ private:
             return a.total_penalty < b.total_penalty;
         }
         
-        // Compare by solve times
-        vector<int> times_a = a.getSortedSolveTimes();
-        vector<int> times_b = b.getSortedSolveTimes();
+        // Compare by solve times (use references to avoid copying)
+        const vector<int>& times_a = a.getSortedSolveTimes();
+        const vector<int>& times_b = b.getSortedSolveTimes();
         
         for (size_t i = 0; i < min(times_a.size(), times_b.size()); i++) {
             if (times_a[i] != times_b[i]) {
