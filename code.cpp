@@ -371,20 +371,23 @@ public:
             
             // Check if ranking changed
             int old_rank = lowest_rank;
+            string old_team_at_old_rank = team_ranking[old_rank];
+            
             invalidateRanking();
             updateRanking();
-            int new_rank = -1;
+            int new_rank_idx = -1;
             for (int i = 0; i < team_ranking.size(); i++) {
                 if (team_ranking[i] == lowest_team) {
-                    new_rank = i;
+                    new_rank_idx = i;
                     break;
                 }
             }
             
-            if (new_rank < old_rank) {
-                // Ranking improved
-                string replaced_team = team_ranking[new_rank + 1];
-                ranking_changes.push_back({lowest_team, replaced_team, 
+            if (new_rank_idx < old_rank) {
+                // Ranking improved - report the team that was displaced
+                // The displaced team is the one now immediately after the moving team
+                string displaced_team = team_ranking[new_rank_idx + 1];
+                ranking_changes.push_back({lowest_team, displaced_team, 
                     team.solved_count, team.total_penalty});
             }
         }
