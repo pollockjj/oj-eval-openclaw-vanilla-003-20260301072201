@@ -280,10 +280,12 @@ public:
         
         frozen = true;
         
-        // Record wrong attempts before freeze
+        // Record wrong attempts before freeze for unsolved problems only
         for (auto& t : teams) {
             for (auto& p : t.second.problems) {
-                p.second.wrong_before_freeze = p.second.wrong_attempts;
+                if (!p.second.solved) {
+                    p.second.wrong_before_freeze = p.second.wrong_attempts;
+                }
             }
         }
         
@@ -521,11 +523,11 @@ int main() {
             string team_name, tmp, problem_eq, status_eq;
             iss >> team_name >> tmp >> problem_eq >> tmp >> status_eq;
             
-            // Parse PROBLEM=problem_name
-            string problem = problem_eq.substr(7); // Skip "PROBLEM="
+            // Parse PROBLEM=problem_name (PROBLEM= is 8 characters)
+            string problem = problem_eq.substr(8);
             
-            // Parse STATUS=status
-            string status_str = status_eq.substr(7); // Skip "STATUS="
+            // Parse STATUS=status (STATUS= is 7 characters)
+            string status_str = status_eq.substr(7);
             
             system.querySubmission(team_name, problem, status_str);
         }
